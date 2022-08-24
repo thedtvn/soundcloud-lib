@@ -10,14 +10,16 @@ import mutagen
 from . import sync, util
 
 
-async def get_resource() -> bytes:
+async def get_resource(url) -> bytes:
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://a-v2.sndcdn.com/assets/50-465aa5de.js") as r:
-            return re.findall(r",client_id:\"(.+?)\",", await r.text(), flags=re.IGNORECASE)[0]
+        async with session.get(url) as r:
+            return await r.content.read()
 
 
 async def fetch_soundcloud_client_id():
-    id = await get_resource()
+    data = await get_resource("https://a-v2.sndcdn.com/assets/50-465aa5de.js")
+    data = id.decode()
+    id = re.findall(r",client_id:\"(.+?)\"\,", data, flags=re.IGNORECASE)[0]
     if id is not None:
         return id
 
