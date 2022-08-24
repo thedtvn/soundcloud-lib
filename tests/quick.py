@@ -5,13 +5,11 @@ from io import BytesIO
 async def do():
     api = SoundcloudAPI()
     urls = [
-        'https://soundcloud.com/mt-marcy/cold-nights'
+        'https://on.soundcloud.com/gDMy'
     ]
     for url in urls:
         track = await api.resolve(url)
-        file = BytesIO()
-        size = file.__sizeof__()
-        await track.write_mp3_to(file)
+        print(track)
 
 
 asyncio.get_event_loop().run_until_complete(do())

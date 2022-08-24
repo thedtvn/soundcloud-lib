@@ -1,5 +1,6 @@
 import re
 from urllib.request import urlopen
+from urllib.parse import urlparse
 import json
 from . import util
 import random
@@ -60,6 +61,8 @@ class SoundcloudAPI:
     def resolve(self, url):
         if not self.client_id:
             self.get_credentials()
+        if urlparse(url).hostname.lower() == "on.soundcloud.com":
+            url = urlopen(url, context=get_ssl_setting()).url
         url = SoundcloudAPI.RESOLVE_URL.format(
             url=url,
             client_id=self.client_id
