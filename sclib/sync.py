@@ -75,6 +75,8 @@ class SoundcloudAPI:
             playlist = Playlist(obj=obj, client=self)
             playlist.clean_attributes()
             return playlist
+        else:
+            raise RuntimeError("is not playlist or track")
 
     def _format_get_tracks_urls(self, track_ids):
         urls = []

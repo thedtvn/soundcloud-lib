@@ -84,6 +84,8 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             playlist = Playlist(obj=obj, client=self)
             await playlist.clean_attributes()
             return playlist
+        else:
+            raise RuntimeError("is not playlist or track")
 
     async def get_tracks(self, *track_ids):
         if not self.client_id:
