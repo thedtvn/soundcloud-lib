@@ -34,7 +34,8 @@ async def get_obj_from(url):
     try:
         return json.loads(await get_resource(url))
     except Exception as e:
-        return None
+        print(e)
+        return False
 
 
 async def embed_artwork(audio:mutagen.File, artwork_url):
