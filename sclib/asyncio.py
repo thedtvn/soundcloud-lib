@@ -19,7 +19,7 @@ async def get_resource(url) -> bytes:
 async def fetch_soundcloud_client_id():
     data = await get_resource("https://a-v2.sndcdn.com/assets/50-465aa5de.js")
     data = data.decode()
-    id = re.findall(r",client_id:\"(.+?)\"\,", data, flags=re.IGNORECASE)[0]
+    id = re.findall(r",client_id:\"(.+?)\",", data, flags=re.IGNORECASE)[0]
     if id is not None:
         return id
 
