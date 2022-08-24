@@ -17,7 +17,7 @@ setup(
     license='MIT',
     packages=['sclib'],
     python_requires='>=3.6',
-    install_requires=['mutagen', 'bs4', 'aiohttp'],
+    install_requires=['mutagen', 'aiohttp'],
     test_suite='pytest',
     tests_require=['pytest', 'pytest-asyncio'],
 )

@@ -1,7 +1,6 @@
 import json
 import mutagen
 import sys
-from bs4 import BeautifulSoup
 import random
 import re
 import aiohttp
@@ -9,22 +8,16 @@ import asyncio
 import itertools
 from . import sync, util
 
-async def get_resource(url) -> bytes:
+async def get_resource() -> bytes:
     async with aiohttp.ClientSession() as session:
-        async with session as conn:
-            async with conn.request('GET', url) as request:
-                return await request.content.read()
-
+        async session.get("https://a-v2.sndcdn.com/assets/50-465aa5de.js") as r:
+            return re.findall(r",client_id:\"(.+?)\"\,", data, flags=re.IGNORECASE)[0]
 
 
 async def fetch_soundcloud_client_id():
-    url = random.choice(util.SCRAPE_URLS)
-    page_text = await get_resource(url)
-    script_urls = util.find_script_urls(page_text.decode())
-    results = await asyncio.gather(*[get_resource(u) for u in script_urls])
-    script_text = "".join([r.decode() for r in results])
-    #print(script_text)
-    return util.find_client_id(script_text)
+    id = await get_resource()
+    if id is not None:
+        return id
 
 __all__ = [
     "Track",
@@ -39,8 +32,7 @@ async def get_obj_from(url):
     try:
         return json.loads(await get_resource(url))
     except Exception as e:
-        eprint(type(e), str(e))
-        return False
+        return None
 
 
 
