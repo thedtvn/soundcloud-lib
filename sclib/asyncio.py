@@ -1,17 +1,19 @@
-import json
-import mutagen
-import sys
-import random
-import re
-import aiohttp
 import asyncio
 import itertools
+import json
+import re
+import sys
+
+import aiohttp
+import mutagen
+
 from . import sync, util
+
 
 async def get_resource() -> bytes:
     async with aiohttp.ClientSession() as session:
-        async session.get("https://a-v2.sndcdn.com/assets/50-465aa5de.js") as r:
-            return re.findall(r",client_id:\"(.+?)\"\,", data, flags=re.IGNORECASE)[0]
+        async with session.get("https://a-v2.sndcdn.com/assets/50-465aa5de.js") as r:
+            return re.findall(r",client_id:\"(.+?)\",", await r.text(), flags=re.IGNORECASE)[0]
 
 
 async def fetch_soundcloud_client_id():
@@ -33,8 +35,6 @@ async def get_obj_from(url):
         return json.loads(await get_resource(url))
     except Exception as e:
         return None
-
-
 
 
 async def embed_artwork(audio:mutagen.File, artwork_url):
