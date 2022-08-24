@@ -68,7 +68,6 @@ class SoundcloudAPI:
             client_id=self.client_id
         )
         obj = get_obj_from(url)
-        # print(json.dumps(obj, indent=2))  # TODO: remove
         if obj['kind'] == 'track':
             return Track(obj=obj, client=self)
         elif obj['kind'] == 'playlist':
