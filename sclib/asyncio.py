@@ -3,7 +3,7 @@ import itertools
 import json
 import re
 import sys
-
+from urllib.parse import urlparse
 import aiohttp
 import mutagen
 
@@ -69,6 +69,10 @@ class SoundcloudAPI(sync.SoundcloudAPI):
     async def resolve(self, url):
         if not self.client_id:
             await self.get_credentials()
+        if urlparse(url).hostname.lower() == "on.soundcloud.com":
+            async with aiohttp.ClientSession() as s:
+                async with s.get(url) as r:
+                    url = r.url
         full_url = "https://api-v2.soundcloud.com/resolve?url={url}&client_id={client_id}&app_version=1499347238".format(
             url=url,
             client_id=self.client_id
