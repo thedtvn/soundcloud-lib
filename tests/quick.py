@@ -8,10 +8,15 @@ async def do():
         'https://soundcloud.com/zekk_wa_zetku/goodbye-my-friends'
     ]
     for url in urls:
-        track = await api.resolve(url)
-        print(track)
+        await api.resolve(url)
 
-
-asyncio.get_event_loop().run_until_complete(do())
-
+try:
+    import platform
+    print(platform.system())
+    if platform.system() == 'Windows':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    loop = asyncio.new_event_loop()
+    data = loop.run_until_complete(do())
+except:
+    pass
 
