@@ -81,9 +81,9 @@ class SoundcloudAPI(sync.SoundcloudAPI):
         if self.debug:
             print(full_url)
             print(obj)
-        if obj['kind'] == 'track':
+        if obj.get('kind') == 'track':
             return Track(obj=obj, client=self)
-        elif obj['kind'] == 'playlist':
+        elif obj.get('kind') == 'playlist':
             playlist = Playlist(obj=obj, client=self)
             await playlist.clean_attributes()
             return playlist
