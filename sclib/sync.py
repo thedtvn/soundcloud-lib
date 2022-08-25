@@ -38,6 +38,7 @@ class UnsupportedFormatError(Exception): pass
 class SoundcloudAPI:
     __slots__ = [
         'client_id',
+        'debug'
     ]
     RESOLVE_URL = "https://api-v2.soundcloud.com/resolve?url={url}&client_id={client_id}"
     SEARCH_URL  = "https://api-v2.soundcloud.com/search?q={query}&client_id={client_id}&limit={limit}&offset={offset}"
@@ -47,11 +48,12 @@ class SoundcloudAPI:
 
     TRACK_API_MAX_REQUEST_SIZE = 50
 
-    def __init__(self, client_id=None):
+    def __init__(self, client_id=None, debug: bool=False):
         if client_id:
             self.client_id = client_id
         else:
             self.client_id = None
+        self.debug = debug
 
 
     def get_credentials(self):
@@ -63,11 +65,14 @@ class SoundcloudAPI:
             self.get_credentials()
         if urlparse(url).hostname.lower() == "on.soundcloud.com":
             url = urlopen(url, context=get_ssl_setting()).url
-        url = SoundcloudAPI.RESOLVE_URL.format(
+        full_url = SoundcloudAPI.RESOLVE_URL.format(
             url=url,
             client_id=self.client_id
         )
-        obj = get_obj_from(url)
+        obj = get_obj_from(full_url)
+        if self.debug:
+            print(full_url)
+            print(obj)
         if obj['kind'] == 'track':
             return Track(obj=obj, client=self)
         elif obj['kind'] == 'playlist':

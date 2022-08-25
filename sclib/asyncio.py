@@ -78,6 +78,9 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             client_id=self.client_id
         )
         obj = await get_obj_from(full_url)
+        if self.debug:
+            print(full_url)
+            print(obj)
         if obj['kind'] == 'track':
             return Track(obj=obj, client=self)
         elif obj['kind'] == 'playlist':

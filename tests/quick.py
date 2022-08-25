@@ -5,7 +5,7 @@ from io import BytesIO
 async def do():
     api = SoundcloudAPI()
     urls = [
-        'https://on.soundcloud.com/gDMy'
+        'https://soundcloud.com/zekk_wa_zetku/goodbye-my-friends'
     ]
     for url in urls:
         track = await api.resolve(url)
