@@ -5,6 +5,7 @@ import json
 from . import util
 import random
 import io
+import urllib.parse
 import mutagen
 from concurrent import futures
 from ssl import SSLContext
@@ -41,10 +42,11 @@ class SoundcloudAPI:
         'debug'
     ]
     RESOLVE_URL = "https://api-v2.soundcloud.com/resolve?url={url}&client_id={client_id}"
-    SEARCH_URL  = "https://api-v2.soundcloud.com/search?q={query}&client_id={client_id}&limit={limit}&offset={offset}"
+    SEARCH_URL  = "https://api-v2.soundcloud.com/search{typedata}?q={query}&client_id={client_id}&limit={limit}&offset={offset}"
     STREAM_URL  = "https://api.soundcloud.com/i1/tracks/{track_id}/streams?client_id={client_id}"
     TRACKS_URL  = "https://api-v2.soundcloud.com/tracks?ids={track_ids}&client_id={client_id}"
     PROGRESSIVE_URL = "https://api-v2.soundcloud.com/media/soundcloud:tracks:723290971/53dc4e74-0414-4ab8-8741-a07ac56c787f/stream/progressive?client_id={client_id}"
+    SEARCH_URL = "https://api-v2.soundcloud.com/search{typedata}?q={searchdata}&client_id={client_id}&limit={limit}"
 
     TRACK_API_MAX_REQUEST_SIZE = 50
 
@@ -59,6 +61,38 @@ class SoundcloudAPI:
     def get_credentials(self):
         page_text = get_page("https://a-v2.sndcdn.com/assets/50-465aa5de.js")
         self.client_id = re.findall(r",client_id:\"(.+?)\"\,", page_text, flags=re.IGNORECASE)[0]
+
+    def search(self, searchdata, tracks:bool=None, limit:int=10):
+        if not self.client_id:
+            self.get_credentials()
+        if tracks is None:
+            typedata = ""
+        elif tracks is False:
+            typedata = "/playlists"
+        elif tracks is True:
+            typedata = "/tracks"
+        full_url = SoundcloudAPI.SEARCH_URL.format(
+            typedata=typedata,
+            searchdata=urllib.parse.quote(searchdata),
+            client_id=self.client_id,
+            limit=limit
+        )
+        mutiobj = get_obj_from(full_url)["collection"]
+        if self.debug:
+            print(full_url)
+            print(mutiobj)
+        rt = []
+        for obj in mutiobj:
+            if obj.get('kind') == 'track':
+                rt.append(Track(obj=obj, client=self))
+            elif obj.get('kind') == 'playlist':
+                playlist = Playlist(obj=obj, client=self)
+                playlist.clean_attributes()
+                rt.append(playlist)
+        if len(rt) > 0:
+            return rt
+        elif len(rt) == 0:
+            raise RuntimeError("404 not found !")
 
     def resolve(self, url):
         if not self.client_id:

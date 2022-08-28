@@ -3,6 +3,7 @@ import itertools
 import json
 import re
 import sys
+import urllib.parse
 from urllib.parse import urlparse
 import aiohttp
 import mutagen
@@ -65,6 +66,38 @@ class SoundcloudAPI(sync.SoundcloudAPI):
                 'This means Soundcloud has changed where the public client id is located. '
                 'Please report this to the package author.'
             )
+
+    async def search(self, searchdata, tracks:bool=None, limit:int=10):
+        if not self.client_id:
+            await self.get_credentials()
+        if tracks is None:
+            typedata = ""
+        elif tracks is False:
+            typedata = "/playlists"
+        elif tracks is True:
+            typedata = "/tracks"
+        full_url = SoundcloudAPI.SEARCH_URL.format(
+            typedata=typedata,
+            searchdata=urllib.parse.quote(searchdata),
+            client_id=self.client_id,
+            limit=limit
+        )
+        mutiobj = (await get_obj_from(full_url))["collection"]
+        if self.debug:
+            print(full_url)
+            print(mutiobj)
+        rt = []
+        for obj in mutiobj:
+            if obj.get('kind') == 'track':
+                rt.append(Track(obj=obj, client=self))
+            elif obj.get('kind') == 'playlist':
+                playlist = Playlist(obj=obj, client=self)
+                await playlist.clean_attributes()
+                rt.append(playlist)
+        if len(rt) > 0:
+            return rt
+        elif len(rt) == 0:
+            raise RuntimeError("404 not found !")
 
     async def resolve(self, url):
         if not self.client_id:
