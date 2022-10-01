@@ -41,7 +41,7 @@ class SoundcloudAPI:
         'client_id',
         'debug'
     ]
-    RESOLVE_URL = "https://api-v2.soundcloud.com/resolve?url={url}&client_id={client_id}"
+    RESOLVE_URL = "https://api-widget.soundcloud.com/resolve?url={url}&format=json&client_id={client_id}"
     SEARCH_URL  = "https://api-v2.soundcloud.com/search{typedata}?q={query}&client_id={client_id}&limit={limit}&offset={offset}"
     STREAM_URL  = "https://api.soundcloud.com/i1/tracks/{track_id}/streams?client_id={client_id}"
     TRACKS_URL  = "https://api-v2.soundcloud.com/tracks?ids={track_ids}&client_id={client_id}"
@@ -59,8 +59,8 @@ class SoundcloudAPI:
 
 
     def get_credentials(self):
-        page_text = get_page("https://a-v2.sndcdn.com/assets/50-465aa5de.js")
-        self.client_id = re.findall(r",client_id:\"(.+?)\"\,", page_text, flags=re.IGNORECASE)[0]
+        page_text = get_page("https://a-v2.sndcdn.com/assets/50-bef420db.js")
+        self.client_id = re.findall(r'{client_id:"(.*?)"}', page_text, flags=re.IGNORECASE)[0]
 
     def search(self, searchdata, tracks:bool=None, limit:int=10):
         if not self.client_id:

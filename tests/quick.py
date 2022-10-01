@@ -4,8 +4,8 @@ from io import BytesIO
 
 async def data():
     api = SoundcloudAPI(debug=True)
-    data = await api.search("rickroll", tracks=True, limit=1)
-    print(await data[0].get_stream_url())
+    data = await api.resolve("https://soundcloud.com/mameyudoufu/yoi-to-yakou-un-feat-ranasol")
+    print(await data.get_stream_url())
 
 asyncio.run(main=data())
 

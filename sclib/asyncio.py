@@ -18,9 +18,9 @@ async def get_resource(url) -> bytes:
 
 
 async def fetch_soundcloud_client_id():
-    data = await get_resource("https://a-v2.sndcdn.com/assets/50-465aa5de.js")
+    data = await get_resource("https://a-v2.sndcdn.com/assets/50-bef420db.js")
     data = data.decode()
-    id = re.findall(r",client_id:\"(.+?)\",", data, flags=re.IGNORECASE)[0]
+    id = re.findall(r'{client_id:"(.*?)"}', data, flags=re.IGNORECASE)[0]
     if id is not None:
         return id
 
@@ -82,10 +82,9 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             client_id=self.client_id,
             limit=limit
         )
-        mutiobj = (await get_obj_from(full_url))["collection"]
         if self.debug:
             print(full_url)
-            print(mutiobj)
+        mutiobj = (await get_obj_from(full_url))["collection"]
         rt = []
         for obj in mutiobj:
             if obj.get('kind') == 'track':
