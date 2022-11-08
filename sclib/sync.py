@@ -1,4 +1,6 @@
 import re
+import time
+from _ast import keyword
 from urllib.request import urlopen
 from urllib.parse import urlparse
 import json
@@ -39,7 +41,8 @@ class UnsupportedFormatError(Exception): pass
 class SoundcloudAPI:
     __slots__ = [
         'client_id',
-        'debug'
+        'debug',
+        'next_client_id_update'
     ]
     RESOLVE_URL = "https://api-widget.soundcloud.com/resolve?url={url}&format=json&client_id={client_id}"
     SEARCH_URL  = "https://api-v2.soundcloud.com/search{typedata}?q={query}&client_id={client_id}&limit={limit}&offset={offset}"
@@ -56,14 +59,25 @@ class SoundcloudAPI:
         else:
             self.client_id = None
         self.debug = debug
+        self.next_client_id_update = 0
 
 
     def get_credentials(self):
-        page_text = get_page("https://a-v2.sndcdn.com/assets/50-bef420db.js")
-        self.client_id = re.findall(r'{client_id:"(.*?)"}', page_text, flags=re.IGNORECASE)[0]
+        page_text = get_page("https://soundcloud.com/discover")
+        js_link = re.findall(r'<script crossorigin src="(https://a-v2.sndcdn.com/assets/50-.*?)"></script>', page_text, flags=re.IGNORECASE)[0]
+        page_text = get_page(js_link)
+        key_data = re.findall(r'client_id:"(.*?)"', page_text, flags=re.IGNORECASE)
+        if key_data:
+            self.client_id = key_data[0]
+            self.next_client_id_update = int(time.time()) + 300
+
+    def check_last_modified(self):
+        now = int(time.time())
+        return (not self.client_id) or (now >= self.next_client_id_update)
+
 
     def search(self, searchdata, tracks:bool=None, limit:int=10):
-        if not self.client_id:
+        if self.check_last_modified():
             self.get_credentials()
         if tracks is None:
             typedata = ""
@@ -95,7 +109,7 @@ class SoundcloudAPI:
             raise RuntimeError("404 not found !")
 
     def resolve(self, url):
-        if not self.client_id:
+        if not self.check_last_modified():
             self.get_credentials()
         if urlparse(url).hostname.lower() == "on.soundcloud.com":
             url = urlopen(url, context=get_ssl_setting()).url

@@ -3,6 +3,7 @@ import itertools
 import json
 import re
 import sys
+import time
 import urllib.parse
 from urllib.parse import urlparse
 import aiohttp
@@ -18,9 +19,12 @@ async def get_resource(url) -> bytes:
 
 
 async def fetch_soundcloud_client_id():
-    data = await get_resource("https://a-v2.sndcdn.com/assets/50-bef420db.js")
+    data = await get_resource("https://soundcloud.com/discover")
+    page_text = data.decode()
+    js_link = re.findall(r'<script crossorigin src="(https://a-v2.sndcdn.com/assets/50-.*?)"></script>', page_text, flags=re.IGNORECASE)[0]
+    data = await get_resource(js_link)
     data = data.decode()
-    id = re.findall(r'{client_id:"(.*?)"}', data, flags=re.IGNORECASE)[0]
+    id = re.findall(r'client_id:"(.*?)"', data, flags=re.IGNORECASE)[0]
     if id is not None:
         return id
 
@@ -66,9 +70,10 @@ class SoundcloudAPI(sync.SoundcloudAPI):
                 'This means Soundcloud has changed where the public client id is located. '
                 'Please report this to the package author.'
             )
+        self.next_client_id_update = int(time.time()) + 300
 
     async def search(self, searchdata, tracks:bool=None, limit:int=10):
-        if not self.client_id:
+        if not self.check_last_modified():
             await self.get_credentials()
         if tracks is None:
             typedata = ""
@@ -99,7 +104,7 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             raise RuntimeError("404 not found !")
 
     async def resolve(self, url):
-        if not self.client_id:
+        if self.check_last_modified():
             await self.get_credentials()
         if urlparse(url).hostname.lower() == "on.soundcloud.com":
             async with aiohttp.ClientSession() as s:
