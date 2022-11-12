@@ -11,7 +11,7 @@ import urllib.parse
 import mutagen
 from concurrent import futures
 from ssl import SSLContext
-
+from multiprocessing.pool import ThreadPool as Pool
 ssl_verify=True
 
 def get_ssl_setting():
@@ -124,6 +124,10 @@ class SoundcloudAPI:
         if obj.get('kind') == 'track':
             return Track(obj=obj, client=self)
         elif obj.get('kind') == 'playlist':
+            playlist = Playlist(obj=obj, client=self)
+            playlist.clean_attributes()
+            return playlist
+        elif obj.get('kind') == 'system-playlist':
             playlist = Playlist(obj=obj, client=self)
             playlist.clean_attributes()
             return playlist
@@ -392,3 +396,4 @@ class Playlist:
         self.clean_attributes()
         for track in self.tracks:
             yield track
+

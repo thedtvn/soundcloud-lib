@@ -124,6 +124,10 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             playlist = Playlist(obj=obj, client=self)
             await playlist.clean_attributes()
             return playlist
+        elif obj.get('kind') == 'system-playlist':
+            playlist = Playlist(obj=obj, client=self)
+            await playlist.clean_attributes()
+            return playlist
         else:
             raise RuntimeError("is not playlist or track")
 
