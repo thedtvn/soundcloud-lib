@@ -16,7 +16,7 @@ I once applied for API access and was approved.  I used this access for months u
 # Installation
 This library is installable as a pip package.
 ```
-pip install soundcloud-lib
+pip install git+https://github.com/thedtvn/soundcloud-lib.git
 ```
 
 # How

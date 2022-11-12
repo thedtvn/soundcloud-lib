@@ -1,23 +1,8 @@
-name: Python application
-
-on: [push]
-
+on: push
+name: Lint Python
 jobs:
-  build:
-
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install .
-    - name: Test with pytest
-      run: |
-        pip install pytest pytest-asyncio
-        pytest tests/quick.py
+      - uses: actions/checkout@v2
+      - uses: cclauss/Find-Python-syntax-errors-action@master
