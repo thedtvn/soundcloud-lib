@@ -110,7 +110,7 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             async with aiohttp.ClientSession() as s:
                 async with s.get(url) as r:
                     url = r.url
-        full_url = "https://api-v2.soundcloud.com/resolve?url={url}&client_id={client_id}&app_version=1499347238".format(
+        full_url = SoundcloudAPI.RESOLVE_URL.format(
             url=url,
             client_id=self.client_id
         )
