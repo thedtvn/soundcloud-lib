@@ -73,7 +73,7 @@ class SoundcloudAPI(sync.SoundcloudAPI):
         self.next_client_id_update = int(time.time()) + 300
 
     async def search(self, searchdata, tracks:bool=None, limit:int=10):
-        if not self.check_last_modified():
+        if self.check_last_modified():
             await self.get_credentials()
         if tracks is None:
             typedata = ""
