@@ -72,6 +72,22 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             )
         self.next_client_id_update = int(time.time()) + 300
 
+    async def autocomplete(self, query):
+        if self.check_last_modified():
+            await self.get_credentials()
+        full_url = SoundcloudAPI.AUTOCOMPLETE_URL.format(
+            searchdata=urllib.parse.quote(query),
+            client_id=self.client_id
+        )
+        if self.debug:
+            print(full_url)
+        mutiobj = (await get_obj_from(full_url))["collection"]
+        rt = []
+        for obj in mutiobj:
+            rt.append(obj.get('query'))
+        return rt
+
+
     async def search(self, searchdata, tracks:bool=None, limit:int=10):
         if self.check_last_modified():
             await self.get_credentials()

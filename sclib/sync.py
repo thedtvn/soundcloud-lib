@@ -50,6 +50,7 @@ class SoundcloudAPI:
     TRACKS_URL  = "https://api-v2.soundcloud.com/tracks?ids={track_ids}&client_id={client_id}"
     PROGRESSIVE_URL = "https://api-v2.soundcloud.com/media/soundcloud:tracks:723290971/53dc4e74-0414-4ab8-8741-a07ac56c787f/stream/progressive?client_id={client_id}"
     SEARCH_URL = "https://api-v2.soundcloud.com/search{typedata}?q={searchdata}&client_id={client_id}&limit={limit}"
+    AUTOCOMPLETE_URL = "https://api-v2.soundcloud.com/search/queries?q={searchdata}&client_id={client_id}"
 
     TRACK_API_MAX_REQUEST_SIZE = 50
 
@@ -75,6 +76,20 @@ class SoundcloudAPI:
         now = int(time.time())
         return (not self.client_id) or (now >= self.next_client_id_update)
 
+    def autocomplete(self, query):
+        if self.check_last_modified():
+            self.get_credentials()
+        full_url = SoundcloudAPI.AUTOCOMPLETE_URL.format(
+            searchdata=urllib.parse.quote(query),
+            client_id=self.client_id
+        )
+        if self.debug:
+            print(full_url)
+        mutiobj = get_obj_from(full_url)["collection"]
+        rt = []
+        for obj in mutiobj:
+            rt.append(obj.get('query'))
+        return rt
 
     def search(self, searchdata, tracks:bool=None, limit:int=10):
         if self.check_last_modified():
