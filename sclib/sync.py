@@ -44,7 +44,7 @@ class SoundcloudAPI:
         'debug',
         'next_client_id_update'
     ]
-    RESOLVE_URL = "https://api-widget.soundcloud.com/resolve?url={url}&format=json&client_id={client_id}"
+    RESOLVE_URL = "https://api-v2.soundcloud.com/resolve?url={url}&format=json&client_id={client_id}"
     SEARCH_URL  = "https://api-v2.soundcloud.com/search{typedata}?q={query}&client_id={client_id}&limit={limit}&offset={offset}"
     STREAM_URL  = "https://api.soundcloud.com/i1/tracks/{track_id}/streams?client_id={client_id}"
     TRACKS_URL  = "https://api-v2.soundcloud.com/tracks?ids={track_ids}&client_id={client_id}"

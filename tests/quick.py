@@ -4,7 +4,7 @@ from io import BytesIO
 
 async def data():
     api = SoundcloudAPI(debug=True)
-    data = await api.autocomplete("rickr")
+    data = await api.resolve("https://soundcloud.com/tungmg5902")
     print(data)
 
 asyncio.run(main=data())
