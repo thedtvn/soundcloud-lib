@@ -32,7 +32,8 @@ def get_obj_from(url):
     except Exception as e:
         util.eprint(type(e), str(e))
         return False
-
+def run(a):
+    a()
 
 class UnsupportedFormatError(Exception): pass
 
@@ -51,6 +52,11 @@ class SoundcloudAPI:
     PROGRESSIVE_URL = "https://api-v2.soundcloud.com/media/soundcloud:tracks:723290971/53dc4e74-0414-4ab8-8741-a07ac56c787f/stream/progressive?client_id={client_id}"
     SEARCH_URL = "https://api-v2.soundcloud.com/search{typedata}?q={searchdata}&client_id={client_id}&limit={limit}"
     AUTOCOMPLETE_URL = "https://api-v2.soundcloud.com/search/queries?q={searchdata}&client_id={client_id}"
+    USER_URL = "https://api-v2.soundcloud.com/users/{id}?client_id={client_id}&limit=80000"
+    USER_TRACK_URL = "https://api-v2.soundcloud.com/users/{id}/tracks?client_id={client_id}&limit=80000"
+    USER_PLAYLISTS_URL = "https://api-v2.soundcloud.com/users/{id}/playlists?client_id={client_id}&limit=80000"
+    USER_URL = "https://api-v2.soundcloud.com/users/{id}?client_id={client_id}&limit=80000"
+
 
     TRACK_API_MAX_REQUEST_SIZE = 50
 
@@ -124,7 +130,7 @@ class SoundcloudAPI:
             raise RuntimeError("404 not found !")
 
     def resolve(self, url):
-        if not self.check_last_modified():
+        if self.check_last_modified():
             self.get_credentials()
         if urlparse(url).hostname.lower() == "on.soundcloud.com":
             url = urlopen(url, context=get_ssl_setting()).url
@@ -146,6 +152,10 @@ class SoundcloudAPI:
             playlist = Playlist(obj=obj, client=self)
             playlist.clean_attributes()
             return playlist
+        elif obj.get('kind') == 'user':
+            user = USER(obj=obj, client=self)
+            user.clean_attributes()
+            return user
         else:
             raise RuntimeError("is not playlist or track")
 
@@ -160,6 +170,22 @@ class SoundcloudAPI:
             )
             urls.append(url)
         return urls
+
+    def get_user_track(self, user_id):
+        full_url = SoundcloudAPI.USER_TRACK_URL.format(
+            id=user_id,
+            client_id=self.client_id
+        )
+        obj = get_obj_from(full_url)["collection"]
+        return obj
+
+    def get_user_playlists(self, user_id):
+        full_url = SoundcloudAPI.USER_PLAYLISTS_URL.format(
+            id=user_id,
+            client_id=self.client_id
+        )
+        obj = get_obj_from(full_url)["collection"]
+        return obj
 
     def get_tracks(self, *track_ids):
         threads = []
@@ -412,3 +438,85 @@ class Playlist:
         for track in self.tracks:
             yield track
 
+class USER:
+    __slots__ = [
+        "avatar_url",
+        "city",
+        "comments_count",
+        "country_code",
+        "created_at",
+        "creator_subscriptions",
+        "creator_subscription",
+        "description",
+        "followers_count",
+        "followings_count",
+        "first_name",
+        "full_name",
+        "groups_count",
+        "id",
+        "kind",
+        "last_modified",
+        "last_name",
+        "likes_count",
+        "playlist_likes_count",
+        "permalink",
+        "permalink_url",
+        "playlist_count",
+        "reposts_count",
+        "track_count",
+        "uri",
+        "urn",
+        "username",
+        "verified",
+        "visuals",
+        "badges",
+        "station_urn",
+        "station_permalink",
+        "tracks",
+        "playlists",
+
+        "client",
+        "ready"
+    ]
+    RESOLVE_THRESHOLD = 100
+
+    def __init__(self, *, obj=None, client: SoundcloudAPI=None):
+        assert obj
+        assert "id" in obj
+        for key in self.__slots__:
+            self.__setattr__(key, obj[key] if key in obj else None)
+        self.client = client
+
+    def clean_attributes(self):
+        if self.ready:
+            return
+        self.tracks = self.client.get_user_track(self.id)
+        self.playlists = self.client.get_user_playlists(self.id)
+        self.ready = True
+        track_objects = []  # type: [Track] # all completed track objects
+        incomplete_track_ids = []  # tracks that do not have metadata
+
+        while self.tracks and 'title' in self.tracks[0]:  # remove completed track objects
+            track_objects.append(Track(obj=self.tracks.pop(0), client=self.client))
+
+        while self.tracks:  # while built tracks are less than all tracks
+            incomplete_track_ids.append(self.tracks.pop(0)['id'])
+            if len(incomplete_track_ids) == self.RESOLVE_THRESHOLD or not self.tracks:
+                new_tracks = self.client.get_tracks(*incomplete_track_ids)
+                track_objects.extend([Track(obj=t, client=self.client) for t in new_tracks])
+                incomplete_track_ids.clear()
+        self.tracks = track_objects
+        obj_playlists = []
+        for playlist in self.playlists:
+            playlist = Playlist(obj=playlist, client=self.client)
+            playlist.clean_attributes()
+            obj_playlists.append(playlist)
+        self.playlists = obj_playlists
+
+    def __len__(self):
+        return int(self.track_count)
+
+    def __iter__(self):
+        self.clean_attributes()
+        for track in self.tracks:
+            yield track

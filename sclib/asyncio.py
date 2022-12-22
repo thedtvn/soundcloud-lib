@@ -144,8 +144,28 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             playlist = Playlist(obj=obj, client=self)
             await playlist.clean_attributes()
             return playlist
+        elif obj.get('kind') == 'user':
+            user = USER(obj=obj, client=self)
+            await user.clean_attributes()
+            return user
         else:
             raise RuntimeError("is not playlist or track")
+
+    async def get_user_track(self, user_id):
+        full_url = SoundcloudAPI.USER_TRACK_URL.format(
+            id=user_id,
+            client_id=self.client_id
+        )
+        obj = (await get_obj_from(full_url))["collection"]
+        return obj
+
+    async def get_user_playlists(self, user_id):
+        full_url = SoundcloudAPI.USER_PLAYLISTS_URL.format(
+            id=user_id,
+            client_id=self.client_id
+        )
+        obj = (await get_obj_from(full_url))["collection"]
+        return obj
 
     async def get_tracks(self, *track_ids):
         if not self.client_id:
@@ -234,6 +254,60 @@ class Playlist(sync.Playlist):
         for track in track_objects:
             if track not in self.tracks:
                 self.tracks.append(track)
+
+
+    def __len__(self):
+        return int(self.track_count)
+
+    async def __aiter__(self):
+        await self.clean_attributes()
+        for track in self.tracks:
+            yield track
+
+    def to_dict(self):
+        ignore_attributes = ['client', 'ready']
+        playlist_dict = {}
+        for attr in set(self.__slots__):
+            if attr not in ignore_attributes:
+                playlist_dict[attr] = self.__getattribute__(attr)
+
+        return playlist_dict
+
+class USER(sync.USER):
+    RESOLVE_THRESHOLD = 100
+
+    async def clean_attributes(self):
+        if self.ready:
+            return
+        self.tracks = await self.client.get_user_track(self.id)
+        self.playlists = await self.client.get_user_playlists(self.id)
+        self.ready = True
+
+        track_objects = []  # type: [Track] # all completed track objects
+        incomplete_track_ids = []  # tracks that do not have metadata
+
+        while self.tracks and 'title' in self.tracks[0]:  # remove completed track objects
+            track_objects.append(Track(obj=self.tracks.pop(0), client=self.client))
+
+        while self.tracks:  # while built tracks are less than all tracks
+            incomplete_track_ids.append(self.tracks.pop(0)['id'])
+            if len(incomplete_track_ids) == self.RESOLVE_THRESHOLD or not self.tracks:
+                new_tracks = await self.client.get_tracks(*incomplete_track_ids)
+                track_objects.extend([Track(obj=t, client=self.client) for t in new_tracks])
+                incomplete_track_ids.clear()
+
+        for track in track_objects:
+            if track not in self.tracks:
+                self.tracks.append(track)
+
+        obj_playlists = []
+        for playlist in self.playlists:
+            playlist = Playlist(obj=playlist, client=self.client)
+            await playlist.clean_attributes()
+            obj_playlists.append(playlist)
+        self.playlists = obj_playlists
+
+
 
 
     def __len__(self):
