@@ -507,10 +507,20 @@ class USER:
                 incomplete_track_ids.clear()
         self.tracks = track_objects
         obj_playlists = []
-        for playlist in self.playlists:
-            playlist = Playlist(obj=playlist, client=self.client)
-            playlist.clean_attributes()
-            obj_playlists.append(playlist)
+        def get_playlists_Track(pl):
+            plo = Playlist(obj=pl, client=self.client)
+            plo.clean_attributes()
+            return plo
+
+        threads = []
+        with futures.ThreadPoolExecutor() as executor:
+            for pl in self.playlists:
+                thread = executor.submit(get_playlists_Track, pl)
+                threads.append(thread)
+
+        for thread in futures.as_completed(threads):
+            result = thread.result()
+            obj_playlists.append(result)
         self.playlists = obj_playlists
 
     def __len__(self):

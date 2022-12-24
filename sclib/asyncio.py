@@ -300,11 +300,13 @@ class USER(sync.USER):
             if track not in self.tracks:
                 self.tracks.append(track)
 
+        obj_run_playlists = []
         obj_playlists = []
         for playlist in self.playlists:
             playlist = Playlist(obj=playlist, client=self.client)
-            await playlist.clean_attributes()
+            obj_run_playlists.append(playlist.clean_attributes())
             obj_playlists.append(playlist)
+        await asyncio.gather(*obj_run_playlists)
         self.playlists = obj_playlists
 
 
