@@ -2,7 +2,7 @@ import re
 import time
 from _ast import keyword
 from urllib.request import urlopen
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote_plus
 import json
 from . import util
 import random
@@ -138,7 +138,7 @@ class SoundcloudAPI:
            parsed = urlparse(url)
            url = parsed._replace(netloc="soundcloud.com").geturl()
         full_url = SoundcloudAPI.RESOLVE_URL.format(
-            url=url,
+            url=quote_plus(url),
             client_id=self.client_id
         )
         obj = get_obj_from(full_url)
