@@ -130,7 +130,7 @@ class SoundcloudAPI(sync.SoundcloudAPI):
            parsed = urlparse(url)
            url = parsed._replace(netloc="soundcloud.com").geturl()
         full_url = SoundcloudAPI.RESOLVE_URL.format(
-            url=url,
+            url=quote_plus(url),
             client_id=self.client_id
         )
         obj = await get_obj_from(full_url)
