@@ -134,6 +134,9 @@ class SoundcloudAPI:
             self.get_credentials()
         if urlparse(url).hostname.lower() == "on.soundcloud.com":
             url = urlopen(url, context=get_ssl_setting()).url
+        elif urlparse(url).hostname.lower() == "m.soundcloud.com":
+           parsed = urlparse(url)
+           url = parsed._replace(netloc="soundcloud.com").geturl()
         full_url = SoundcloudAPI.RESOLVE_URL.format(
             url=url,
             client_id=self.client_id
