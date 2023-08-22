@@ -126,6 +126,9 @@ class SoundcloudAPI(sync.SoundcloudAPI):
             async with aiohttp.ClientSession() as s:
                 async with s.get(url) as r:
                     url = r.url
+        elif urlparse(url).hostname.lower() == "m.soundcloud.com":
+           parsed = urlparse(url)
+           url = parsed._replace(netloc="soundcloud.com").geturl()
         full_url = SoundcloudAPI.RESOLVE_URL.format(
             url=url,
             client_id=self.client_id
