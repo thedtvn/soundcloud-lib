@@ -5,7 +5,7 @@ try:
 except:
     long_description = ""
 
-version = '0.5.5a'
+version = '0.5.6a'
 
 if version.endswith('a'):
     # append version identifier based on commit count
