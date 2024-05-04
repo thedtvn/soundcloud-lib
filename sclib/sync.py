@@ -71,7 +71,7 @@ class SoundcloudAPI:
 
     def get_credentials(self):
         page_text = get_page("https://soundcloud.com/discover")
-        js_link = re.findall(r'<script crossorigin src="(https://a-v2.sndcdn.com/assets/50-.*?)"></script>', page_text, flags=re.IGNORECASE)[0]
+        js_link = re.findall(r'<script crossorigin src="(https://a-v2.sndcdn.com/assets/0-.*?)"></script>', page_text, flags=re.IGNORECASE)[0]
         page_text = get_page(js_link)
         key_data = re.findall(r'client_id:"(.*?)"', page_text, flags=re.IGNORECASE)
         if key_data:

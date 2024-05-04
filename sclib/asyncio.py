@@ -21,7 +21,7 @@ async def get_resource(url) -> bytes:
 async def fetch_soundcloud_client_id():
     data = await get_resource("https://soundcloud.com/discover")
     page_text = data.decode()
-    js_link = re.findall(r'<script crossorigin src="(https://a-v2.sndcdn.com/assets/50-.*?)"></script>', page_text, flags=re.IGNORECASE)[0]
+    js_link = re.findall(r'<script crossorigin src="(https://a-v2.sndcdn.com/assets/0-.*?)"></script>', page_text, flags=re.IGNORECASE)[0]
     data = await get_resource(js_link)
     data = data.decode()
     id = re.findall(r'client_id:"(.*?)"', data, flags=re.IGNORECASE)[0]

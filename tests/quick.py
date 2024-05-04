@@ -1,7 +1,6 @@
 from sclib.asyncio import SoundcloudAPI, Track
 import asyncio
 import time
-from io import BytesIO
 
 async def data():
     api = SoundcloudAPI(debug=True)
